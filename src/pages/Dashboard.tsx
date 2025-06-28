@@ -8,15 +8,28 @@ const generateMockProgressData = (studentId: number) => {
   const weeks = [];
   const startDate = new Date('2024-01-01');
   
+  // Monthly payment data - one entry per month
+  const monthlyPayments = [
+    { month: 'يناير', paid: true },
+    { month: 'فبراير', paid: true },
+    { month: 'مارس', paid: false },
+    { month: 'أبريل', paid: true },
+  ];
+  
   for (let i = 1; i <= 16; i++) {
     const weekDate = new Date(startDate);
     weekDate.setDate(startDate.getDate() + (i - 1) * 7);
+    
+    // Get payment status based on month
+    const monthIndex = Math.floor((i - 1) / 4); // 4 weeks per month approximately
+    const currentMonthPayment = monthlyPayments[monthIndex] || { month: 'غير محدد', paid: false };
     
     weeks.push({
       week: i,
       date: weekDate.toLocaleDateString('ar-EG'),
       attendance: Math.random() > 0.2, // 80% attendance rate
-      payment: Math.random() > 0.1, // 90% payment rate
+      payment: currentMonthPayment.paid,
+      paymentMonth: currentMonthPayment.month,
       sheetGrade: Math.floor(Math.random() * 3) + 8, // Grades between 8-10
       maxGrade: 10
     });
@@ -103,7 +116,7 @@ const Dashboard = () => {
                 <th>الأسبوع</th>
                 <th>التاريخ</th>
                 <th>الحضور</th>
-                <th>الدفع</th>
+                <th>الدفع (الشهر)</th>
                 <th>درجة الورقة</th>
               </tr>
             </thead>
@@ -122,13 +135,18 @@ const Dashboard = () => {
                     </span>
                   </td>
                   <td>
-                    <span 
-                      className={`status-icon ${
-                        week.payment ? 'status-present' : 'status-absent'
-                      }`}
-                    >
-                      {week.payment ? '✅' : '❌'}
-                    </span>
+                    <div style={{ textAlign: 'center' }}>
+                      <span 
+                        className={`status-icon ${
+                          week.payment ? 'status-present' : 'status-absent'
+                        }`}
+                      >
+                        {week.payment ? '✅' : '❌'}
+                      </span>
+                      <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
+                        {week.paymentMonth}
+                      </div>
+                    </div>
                   </td>
                   <td>
                     <span className="grade-display">
@@ -149,10 +167,6 @@ const Dashboard = () => {
               <div>
                 <strong>معدل الحضور:</strong>{' '}
                 {Math.round((progressData.filter(w => w.attendance).length / progressData.length) * 100)}%
-              </div>
-              <div>
-                <strong>معدل الدفع:</strong>{' '}
-                {Math.round((progressData.filter(w => w.payment).length / progressData.length) * 100)}%
               </div>
               <div>
                 <strong>متوسط الدرجات:</strong>{' '}
